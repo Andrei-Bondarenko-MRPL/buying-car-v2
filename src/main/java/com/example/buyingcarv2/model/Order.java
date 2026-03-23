@@ -1,7 +1,5 @@
 package com.example.buyingcarv2.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,8 +36,8 @@ public class Order {
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            mappedBy = "order"
+            orphanRemoval = true
     )
-    @JsonManagedReference
+    @JoinColumn(name = "order_id")
     private List<Car> cars;
 }

@@ -1,5 +1,6 @@
 package com.example.buyingcarv2.controller;
 
+import com.example.buyingcarv2.dto.OrderDto;
 import com.example.buyingcarv2.model.Order;
 import com.example.buyingcarv2.service.interfaces.OrderService;
 import jakarta.validation.Valid;
@@ -26,22 +27,22 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public Order getOrderById(@PathVariable Long orderId) {
+    public OrderDto getOrderById(@PathVariable Long orderId) {
         return orderService.getOrderById(orderId);
     }
 
     @GetMapping()
-    public List<Order> getOrderList() {
+    public List<OrderDto> getOrderList() {
         return orderService.getOrderList();
     }
 
     @PostMapping()
-    public Order saveOrder(@Valid @RequestBody Order order) {
+    public OrderDto saveOrder(@Valid @RequestBody Order order) {
         return orderService.saveOrder(order);
     }
 
     @PutMapping("{orderId}")
-    public Order updateOrder(@RequestBody Order updatedOrder,
+    public OrderDto updateOrder(@RequestBody Order updatedOrder,
                              @PathVariable Long orderId) {
         return orderService.updateOrder(updatedOrder, orderId);
     }

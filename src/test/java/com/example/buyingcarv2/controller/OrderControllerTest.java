@@ -1,5 +1,8 @@
 package com.example.buyingcarv2.controller;
 
+import com.example.buyingcarv2.dto.CarDto;
+import com.example.buyingcarv2.dto.ClientDto;
+import com.example.buyingcarv2.dto.OrderDto;
 import com.example.buyingcarv2.model.Order;
 import com.example.buyingcarv2.service.interfaces.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,49 +41,59 @@ public class OrderControllerTest {
 
     private Order order;
 
-    private List<Order> orders;
+    private OrderDto orderDto;
+
+    private List<OrderDto> ordersDto;
 
     @BeforeEach
     public void init() {
         order = new Order();
         order.setId(1L);
 
-        orders = List.of(order);
+        ClientDto client = new ClientDto("John", "Doe", "+380501112233");
+
+        CarDto car = new CarDto("Toyota", "Black", 30000L);
+
+        orderDto = new OrderDto();
+        orderDto.setClient(client);
+        orderDto.setCars(List.of(car));
+
+        ordersDto = List.of(orderDto);
     }
 
     @Test
     public void shouldCallGetOrderByIdTest() throws Exception {
-        when(orderService.getOrderById(1L)).thenReturn(order);
+        when(orderService.getOrderById(1L)).thenReturn(orderDto);
 
         mockMvc.perform(get("/order/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(jsonPath("$.client.firstName").value("John"));
 
         verify(orderService).getOrderById(1L);
     }
 
     @Test
     public void shouldCallGetOrderList() throws Exception {
-        when(orderService.getOrderList()).thenReturn(orders);
+        when(orderService.getOrderList()).thenReturn(ordersDto);
 
         mockMvc.perform(get("/order")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L));
+                .andExpect(jsonPath("$[0].client.firstName").value("John"));
 
         verify(orderService).getOrderList();
     }
 
     @Test
     public void shouldCallSaveOrderTest() throws Exception {
-        when(orderService.saveOrder(any(Order.class))).thenReturn(order);
+        when(orderService.saveOrder(any(Order.class))).thenReturn(orderDto);
 
         mockMvc.perform(post("/order")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(jsonPath("$.client.firstName").value("John"));
 
         verify(orderService).saveOrder(any(Order.class));
     }
@@ -88,13 +101,13 @@ public class OrderControllerTest {
     @Test
     public void shouldCallUpdateOrderByIdTest() throws Exception {
         when(orderService.updateOrder(any(Order.class), eq(1L)))
-                .thenReturn(order);
+                .thenReturn(orderDto);
 
         mockMvc.perform(put("/order/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(order.getId()));
+                .andExpect(jsonPath("$.client.firstName").value("John"));
 
         verify(orderService).updateOrder(any(Order.class), eq(1L));
     }
