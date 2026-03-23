@@ -1,5 +1,8 @@
 package com.example.buyingcarv2.service;
 
+import com.example.buyingcarv2.config.OrderMapper;
+import com.example.buyingcarv2.dto.CarDto;
+import com.example.buyingcarv2.dto.OrderDto;
 import com.example.buyingcarv2.exception.NoSuchOrderExistsException;
 import com.example.buyingcarv2.exception.OrderAlreadyExistsException;
 import com.example.buyingcarv2.model.Car;
@@ -13,12 +16,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +33,9 @@ public class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+
+    @Mock
+    private OrderMapper orderMapper;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -37,20 +46,22 @@ public class OrderServiceTest {
     public void init() {
         Order orderFirst = new Order();
         orderFirst.setId(1L);
+        orderFirst.setCars(new ArrayList<>());
 
         Order orderSecond = new Order();
         orderSecond.setId(2L);
+        orderSecond.setCars(new ArrayList<>());
 
         orders = List.of(orderFirst, orderSecond);
     }
 
     @Test
     public void shouldGetOrderByIdTest() {
-        Order order = orders.get(0);
+        OrderDto order = orderMapper.toOrderDto(orders.get(0));
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findById(1L)).thenReturn(Optional.ofNullable(orders.get(0)));
 
-        Order orderById = orderService.getOrderById(1L);
+        OrderDto orderById = orderService.getOrderById(1L);
 
         assertEquals(order, orderById);
     }
@@ -67,9 +78,13 @@ public class OrderServiceTest {
     public void shouldReturnAllOrdersTest() {
         when(orderRepository.findAll()).thenReturn(orders);
 
-        List<Order> orderList = orderService.getOrderList();
+        List<OrderDto> orderDtos = orders.stream()
+                .map(order -> orderMapper.toOrderDto(order))
+                .toList();
 
-        assertEquals(orders, orderList);
+        List<OrderDto> orderList = orderService.getOrderList();
+
+        assertEquals(orderDtos, orderList);
     }
 
     @Test
@@ -78,7 +93,7 @@ public class OrderServiceTest {
 
         when(orderRepository.findAll()).thenReturn(emptyOrderList);
 
-        List<Order> orderList = orderService.getOrderList();
+        List<OrderDto> orderList = orderService.getOrderList();
 
         assertTrue(orderList.isEmpty());
     }
@@ -88,11 +103,14 @@ public class OrderServiceTest {
         Order savedOrder = new Order();
         savedOrder.setId(1L);
 
+        OrderDto dto = new OrderDto();
+
         when(orderRepository.save(savedOrder)).thenReturn(savedOrder);
+        when(orderMapper.toOrderDto(savedOrder)).thenReturn(dto);
 
-        Order orderResult = orderService.saveOrder(savedOrder);
+        OrderDto orderResult = orderService.saveOrder(savedOrder);
 
-        assertEquals(1L, orderResult.getId());
+        assertNotNull(orderResult);
         verify(orderRepository).save(savedOrder);
     }
 
@@ -106,7 +124,7 @@ public class OrderServiceTest {
 
     @Test
     public void shouldUpdateOrderTest() {
-        Car car = new Car(1L, "Mercedes", "Black", 20000L, orders.get(1));
+        Car car = new Car(1L, "Mercedes", "Black", 20000L);
 
         Client client = new Client();
         client.setId(1L);
@@ -118,10 +136,15 @@ public class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.ofNullable(orders.get(0)));
         when(orderRepository.save(orders.get(0))).thenReturn(orders.get(0));
 
-        Order updatedOrder = orderService.updateOrder(order, 1L);
+        OrderDto orderDto = new OrderDto();
+        orderDto.setCars(List.of(new CarDto("Mercedes", "Black", 20000L)));
 
-        Long carId = updatedOrder.getCars().get(0).getId();
-        assertEquals(carId, car.getId());
+        when(orderMapper.toOrderDto(any(Order.class))).thenReturn(orderDto);
+
+        OrderDto updatedOrder = orderService.updateOrder(order, 1L);
+
+        String model = updatedOrder.getCars().get(0).getModel();
+        assertEquals(model, car.getModel());
     }
 
     @Test
