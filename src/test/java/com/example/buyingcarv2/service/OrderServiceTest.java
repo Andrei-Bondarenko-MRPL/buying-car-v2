@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,14 +43,19 @@ public class OrderServiceTest {
 
     private List<Order> orders;
 
+    private UUID firstId;
+
     @BeforeEach
     public void init() {
+        firstId = UUID.randomUUID();
+        UUID secondId = UUID.randomUUID();
+
         Order orderFirst = new Order();
-        orderFirst.setId(1L);
+        orderFirst.setId(firstId);
         orderFirst.setCars(new ArrayList<>());
 
         Order orderSecond = new Order();
-        orderSecond.setId(2L);
+        orderSecond.setId(secondId);
         orderSecond.setCars(new ArrayList<>());
 
         orders = List.of(orderFirst, orderSecond);
@@ -59,19 +65,19 @@ public class OrderServiceTest {
     public void shouldGetOrderByIdTest() {
         OrderDto order = orderMapper.toOrderDto(orders.get(0));
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.ofNullable(orders.get(0)));
+        when(orderRepository.findById(firstId)).thenReturn(Optional.ofNullable(orders.get(0)));
 
-        OrderDto orderById = orderService.getOrderById(1L);
+        OrderDto orderById = orderService.getOrderById(firstId);
 
         assertEquals(order, orderById);
     }
 
     @Test
     public void shouldThrowExceptionWhenGetOrderByIdTest() {
-        when(orderRepository.findById(1L))
+        when(orderRepository.findById(firstId))
                 .thenThrow(NoSuchOrderExistsException.class);
 
-        assertThrows(NoSuchOrderExistsException.class, () -> orderService.getOrderById(1L));
+        assertThrows(NoSuchOrderExistsException.class, () -> orderService.getOrderById(firstId));
     }
 
     @Test
@@ -101,7 +107,7 @@ public class OrderServiceTest {
     @Test
     public void shouldSaveNewOrderTest() {
         Order savedOrder = new Order();
-        savedOrder.setId(1L);
+        savedOrder.setId(firstId);
 
         OrderDto dto = new OrderDto();
 
@@ -116,24 +122,23 @@ public class OrderServiceTest {
 
     @Test
     public void shouldThrowExceptionSaveExistsOrder() {
-        when(orderRepository.existsById(1L)).thenReturn(true);
+        when(orderRepository.existsById(firstId)).thenReturn(true);
 
         assertThrows(OrderAlreadyExistsException.class, () -> orderService.saveOrder(orders.get(0)));
-        verify(orderRepository).existsById(1L);
+        verify(orderRepository).existsById(firstId);
     }
 
     @Test
     public void shouldUpdateOrderTest() {
-        Car car = new Car(1L, "Mercedes", "Black", 20000L);
-
+        Car car = new Car("Mercedes", "Black", 20000L);
         Client client = new Client();
-        client.setId(1L);
+        client.setId(firstId);
 
         Order order = new Order();
         order.setCars(List.of(car));
         order.setClient(client);
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.ofNullable(orders.get(0)));
+        when(orderRepository.findById(firstId)).thenReturn(Optional.ofNullable(orders.get(0)));
         when(orderRepository.save(orders.get(0))).thenReturn(orders.get(0));
 
         OrderDto orderDto = new OrderDto();
@@ -141,7 +146,7 @@ public class OrderServiceTest {
 
         when(orderMapper.toOrderDto(any(Order.class))).thenReturn(orderDto);
 
-        OrderDto updatedOrder = orderService.updateOrder(order, 1L);
+        OrderDto updatedOrder = orderService.updateOrder(order, firstId);
 
         String model = updatedOrder.getCars().get(0).getModel();
         assertEquals(model, car.getModel());
@@ -150,17 +155,17 @@ public class OrderServiceTest {
     @Test
     public void shouldThrowExceptionUpdateOrderTest() {
         Order order = new Order();
-        order.setId(1L);
+        order.setId(firstId);
 
-        when(orderRepository.findById(1L)).thenThrow(NoSuchOrderExistsException.class);
+        when(orderRepository.findById(firstId)).thenThrow(NoSuchOrderExistsException.class);
 
-        assertThrows(NoSuchOrderExistsException.class, () -> orderService.updateOrder(order, 1L));
+        assertThrows(NoSuchOrderExistsException.class, () -> orderService.updateOrder(order, firstId));
     }
 
     @Test
     public void shouldDeleteOrderByIdTest() {
-        orderService.deleteOrderById(1L);
+        orderService.deleteOrderById(firstId);
 
-        verify(orderRepository).deleteById(1L);
+        verify(orderRepository).deleteById(firstId);
     }
 }
