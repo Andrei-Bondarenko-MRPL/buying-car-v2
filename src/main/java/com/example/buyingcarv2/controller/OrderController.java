@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "order", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -27,7 +28,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public OrderDto getOrderById(@PathVariable Long orderId) {
+    public OrderDto getOrderById(@PathVariable UUID orderId) {
         return orderService.getOrderById(orderId);
     }
 
@@ -43,12 +44,12 @@ public class OrderController {
 
     @PutMapping("{orderId}")
     public OrderDto updateOrder(@RequestBody Order updatedOrder,
-                             @PathVariable Long orderId) {
+                             @PathVariable UUID orderId) {
         return orderService.updateOrder(updatedOrder, orderId);
     }
 
     @DeleteMapping("{orderId}")
-    public void deleteOrderById(@PathVariable Long orderId) {
+    public void deleteOrderById(@PathVariable UUID orderId) {
         orderService.deleteOrderById(orderId);
     }
 }

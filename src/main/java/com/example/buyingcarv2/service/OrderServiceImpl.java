@@ -9,9 +9,10 @@ import com.example.buyingcarv2.repository.OrderRepository;
 import com.example.buyingcarv2.service.interfaces.OrderService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -25,36 +26,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDto getOrderById(Long orderId) {
+    public OrderDto getOrderById(UUID orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new NoSuchOrderExistsException(String.format("Order was not found by this Id=%d", orderId)));
+                .orElseThrow(() -> new NoSuchOrderExistsException(String.format("Order was not found by this Id=%s", orderId)));
 
         return orderMapper.toOrderDto(order);
     }
 
     @Override
     public List<OrderDto> getOrderList() {
-        List<OrderDto> orders = new ArrayList<>();
-        orderRepository.findAll()
-                .forEach(order -> orders.add(orderMapper.toOrderDto(order)));
 
-        return orders;
+        return StreamSupport.stream(orderRepository.findAll().spliterator(), false)
+                .map(orderMapper::toOrderDto)
+                .toList();
     }
 
     @Override
     public OrderDto saveOrder(Order order) {
         if (order.getId() != null && orderRepository.existsById(order.getId())) {
-            throw new OrderAlreadyExistsException(String.format("Order with this Id=%d already exists", order.getId()));
+            throw new OrderAlreadyExistsException(String.format("Order with this Id=%s already exists", order.getId()));
         }
 
         return orderMapper.toOrderDto(orderRepository.save(order));
     }
 
     @Override
-    public OrderDto updateOrder(Order order, Long orderId) {
+    public OrderDto updateOrder(Order order, UUID orderId) {
         Order updatedOrder = orderRepository.findById(orderId)
-                .orElseThrow(() -> new NoSuchOrderExistsException(String.format("Updated order was not found by Id=%d", orderId)));
+                .orElseThrow(() -> new NoSuchOrderExistsException(String.format("Updated order was not found by Id=%s", orderId)));
 
         if (Objects.nonNull(order.getCars())) {
             updatedOrder.getCars().clear();
@@ -71,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void deleteOrderById(Long orderId) {
+    public void deleteOrderById(UUID orderId) {
         orderRepository.deleteById(orderId);
     }
 }

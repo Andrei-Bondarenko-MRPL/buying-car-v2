@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -45,10 +46,14 @@ public class OrderControllerTest {
 
     private List<OrderDto> ordersDto;
 
+    private UUID id;
+
     @BeforeEach
     public void init() {
+        id = UUID.randomUUID();
+
         order = new Order();
-        order.setId(1L);
+        order.setId(id);
 
         ClientDto client = new ClientDto("John", "Doe", "+380501112233");
 
@@ -63,14 +68,14 @@ public class OrderControllerTest {
 
     @Test
     public void shouldCallGetOrderByIdTest() throws Exception {
-        when(orderService.getOrderById(1L)).thenReturn(orderDto);
+        when(orderService.getOrderById(id)).thenReturn(orderDto);
 
-        mockMvc.perform(get("/order/1")
+        mockMvc.perform(get("/order/" + id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.client.firstName").value("John"));
 
-        verify(orderService).getOrderById(1L);
+        verify(orderService).getOrderById(id);
     }
 
     @Test
@@ -100,23 +105,23 @@ public class OrderControllerTest {
 
     @Test
     public void shouldCallUpdateOrderByIdTest() throws Exception {
-        when(orderService.updateOrder(any(Order.class), eq(1L)))
+        when(orderService.updateOrder(any(Order.class), eq(id)))
                 .thenReturn(orderDto);
 
-        mockMvc.perform(put("/order/1")
+        mockMvc.perform(put("/order/" + id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.client.firstName").value("John"));
 
-        verify(orderService).updateOrder(any(Order.class), eq(1L));
+        verify(orderService).updateOrder(any(Order.class), eq(id));
     }
 
     @Test
     public void shouldCallDeleteOrderById() throws Exception {
-        mockMvc.perform(delete("/order/1"))
+        mockMvc.perform(delete("/order/" + id))
                 .andExpect(status().isOk());
 
-        verify(orderService).deleteOrderById(1L);
+        verify(orderService).deleteOrderById(id);
     }
 }
