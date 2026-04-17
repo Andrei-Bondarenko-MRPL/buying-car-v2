@@ -48,14 +48,11 @@ public class OrderServiceTest {
     @BeforeEach
     public void init() {
         firstId = UUID.randomUUID();
-        UUID secondId = UUID.randomUUID();
 
         Order orderFirst = new Order();
-        orderFirst.setId(firstId);
         orderFirst.setCars(new ArrayList<>());
 
         Order orderSecond = new Order();
-        orderSecond.setId(secondId);
         orderSecond.setCars(new ArrayList<>());
 
         orders = List.of(orderFirst, orderSecond);
@@ -107,7 +104,6 @@ public class OrderServiceTest {
     @Test
     public void shouldSaveNewOrderTest() {
         Order savedOrder = new Order();
-        savedOrder.setId(firstId);
 
         OrderDto dto = new OrderDto();
 
@@ -132,7 +128,6 @@ public class OrderServiceTest {
     public void shouldUpdateOrderTest() {
         Car car = new Car("Mercedes", "Black", 20000L);
         Client client = new Client();
-        client.setId(firstId);
 
         Order order = new Order();
         order.setCars(List.of(car));
@@ -155,7 +150,6 @@ public class OrderServiceTest {
     @Test
     public void shouldThrowExceptionUpdateOrderTest() {
         Order order = new Order();
-        order.setId(firstId);
 
         when(orderRepository.findById(firstId)).thenThrow(NoSuchOrderExistsException.class);
 
