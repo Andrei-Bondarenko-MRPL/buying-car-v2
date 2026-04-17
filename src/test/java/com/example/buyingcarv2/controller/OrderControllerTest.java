@@ -53,7 +53,6 @@ public class OrderControllerTest {
         id = UUID.randomUUID();
 
         order = new Order();
-        order.setId(id);
 
         ClientDto client = new ClientDto("John", "Doe", "+380501112233");
 
